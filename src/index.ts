@@ -20,12 +20,25 @@ const startBot = async () => {
     if (qr) {
       console.log(await QRCode.toString(qr, { type: "terminal" }));
     }
-    if (
-      connection === "close" &&
-      lastDisconnect?.error?.output?.statusCode ===
-        DisconnectReason.restartRequired
-    ) {
-      startBot();
+    if (connection === "open") {
+      console.log("Conectado!");
+    }
+    if (connection === "close") {
+      const statusCode = (
+        lastDisconnect?.error as { output?: { statusCode?: number } }
+      )?.output?.statusCode;
+      console.log(
+        "Conexão fechada. statusCode:",
+        statusCode,
+        lastDisconnect?.error?.message,
+      );
+      if (statusCode === DisconnectReason.loggedOut) {
+        console.log(
+          "Sessão deslogada/inválida. Apague a pasta 'auth' e rode de novo para escanear o QR.",
+        );
+      } else {
+        setTimeout(startBot, 3000);
+      }
     }
   });
 
@@ -33,7 +46,6 @@ const startBot = async () => {
     if (type === "notify") {
       // New messages
       for (const message of messages) {
-        console.log(message);
         if (!message.key?.fromMe) {
           const msgContent =
             message.message?.conversation ||
