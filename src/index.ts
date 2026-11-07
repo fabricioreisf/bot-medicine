@@ -12,6 +12,7 @@ const startBot = async () => {
   const sock = makeWASocket({
     auth: state,
     version,
+    markOnlineOnConnect: false,
   });
 
   sock.ev.on("connection.update", async (update) => {
@@ -32,7 +33,18 @@ const startBot = async () => {
     if (type === "notify") {
       // New messages
       for (const message of messages) {
-        console.log("msg:", message);
+        console.log(message);
+        if (!message.key?.fromMe) {
+          const msgContent =
+            message.message?.conversation ||
+            message.message?.extendedTextMessage?.text;
+          const senderId = message.key?.remoteJid;
+          if (senderId)
+            if (msgContent?.toLowerCase().includes("cigarro"))
+              sock.sendMessage(senderId, {
+                text: `Quer ganhar um 🚚caminhão🚛 de 🚬cigarros🚬? Envie 👺CIGARRO👺 para 6️⃣2️⃣9️⃣8️⃣1️⃣1️⃣3️⃣5️⃣1️⃣2️⃣1️⃣ e 🏆participe🎖!👊👉`,
+              });
+        }
       }
     } else {
       // Old messages
